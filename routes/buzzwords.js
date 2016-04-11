@@ -1,33 +1,65 @@
 'use strict';
-const express = require('express');
-const router = express.Router();
+const express = require('express'),
+      router = express.Router(),
+      bodyParser = require('body-parser');
+let   buzzwords = [],
+      score = [];
 
-let buzzwords = ['Social Mobile', 'Internet of things', 'Middle out', 'Big data', 'data mining'];
-
-router.route('/:id')
-  .get( (req, res) => {
-    let id = req.params.id
-    res.send(buzzwords[id]);
-      });
-
+router.use(bodyParser.json());
+router.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 router.route('/')
   .get( (req, res) => {
     res.json({
-      users: buzzwords
-    });
+      buzzwords: buzzwords });
   });
 
 router.post('/', (req, res) => {
-  res.json({ success: true});
+  req.body.buzzword;
+  req.body.points;
+  let buzzObj = ({
+    'buzzword': req.body.buzzword,
+    'score': req.body.points,
+    heard: false
+  });
+  buzzwords.push(buzzObj);
+  res.json({ success: true });
 });
 
 router.put('/', (req, res) => {
-  res.json({ success: true, message: 'user updated!'});
-});
+    if (buzzwords.length === 0) {
+      return res.status(400).send('Bad Request: There are no buzzwords');
+    }
+    for (var i = 0; i<buzzwords.length; i++) {
+      if (buzzwords[i].buzzword === req.body.buzzword) {
+        buzzwords[i].heard = req.body.heard;
+        score = Number(req.body.points);
+        buzzwords[i].score = score;
+        return res.json({
+          success: true,
+          newScore: score
+        });
+      }
+    }
+    return res.status(400).send('Bad Request: Not an existing buzzword');
+  });
 
 router.delete('/', (req, res) => {
-  res.json({ success: true, message: 'user removed'});
-});
+    var buzzIndex;
+    if (buzzwords.length === 0) {
+      return res.status(400).send('Bad Request: There are no buzzwords');
+    }
+    for (var k = 0; k < buzzwords.length; k++) {
+      if (buzzwords[k].buzzword === req.body.buzzword) {
+        buzzwords.splice(k, 1);
+        return res.json({
+          success: true
+        });
+      }
+    }
+    return res.status(400).send('Bad Request: Not an existing buzzword');
+  });
 
 module.exports = router;
